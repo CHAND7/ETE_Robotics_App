@@ -30,14 +30,31 @@ LOGO_FILE = "ETE-Robotics-Logo.png"
 # Load Excel data once
 @st.cache_data
 def load_excel_data():
-    df = pd.read_excel(EXCEL_FILE, header=12, usecols="B:H")
-    df = df.rename(columns={
-        'Unnamed: 1': 'Head',
-        'Unnamed: 2': 'Description',
-        'Unnamed: 4': 'Model/Key Spec',
-        'Unnamed: 6': 'Unit Cost'
-    })
-    df = df.dropna(subset=['Head'])
+    try:
+        # Try reading from row 12 (index 11)
+        df = pd.read_excel(EXCEL_FILE, header=11, usecols="B:H", engine="openpyxl")
+    except Exception as e:
+        st.error(f"Error reading Excel file: {e}")
+        return pd.DataFrame()
+
+    # Normalize column names
+    df.columns = df.columns.str.strip().str.replace('\n', ' ').str.replace('\r', '')
+
+    # Try to rename based on actual column headers present
+    rename_map = {}
+    for col in df.columns:
+        if "Head" in col: rename_map[col] = "Head"
+        elif "Description" in col: rename_map[col] = "Description"
+        elif "Model" in col or "Key Spec" in col: rename_map[col] = "Model/Key Spec"
+        elif "Unit" in col and "Cost" in col: rename_map[col] = "Unit Cost"
+
+    df = df.rename(columns=rename_map)
+
+    if "Head" not in df.columns:
+        st.error("❌ Could not find 'Head' column in Excel. Please verify header row in the uploaded file.")
+        st.stop()
+
+    df = df.dropna(subset=["Head"])
     return df
 
 data = load_excel_data()
