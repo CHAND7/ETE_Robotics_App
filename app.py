@@ -16,8 +16,12 @@ from pptx.util import Inches, Pt
 from PIL import Image
 
 # ------------------- CONFIGURATION -------------------
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "ete123"
+# ADMIN_USERNAME = "admin"
+# ADMIN_PASSWORD = "ete123"
+
+# Use Streamlit secrets: provide defaults for local dev fallback
+ADMIN_USERNAME = st.secrets.get("admin", {}).get("username", "admin")
+ADMIN_PASSWORD = st.secrets.get("admin", {}).get("password", "ete123")
 
 # Load Excel data
 EXCEL_FILE = "ETE_Robotics-Bom-Data-for-softwares-development.xlsx"
